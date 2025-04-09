@@ -5,20 +5,29 @@ import Footer from '@/components/landing/Footer';
 import LessonForm from '@/components/generator/LessonForm';
 import LessonDisplay from '@/components/generator/LessonDisplay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LessonRequest, LessonResponse } from '@/services/openai';
 
 const Generator = () => {
-  const [generatedLesson, setGeneratedLesson] = useState<any>(null);
+  const [generatedLesson, setGeneratedLesson] = useState<LessonResponse | null>(null);
+  const [lastRequest, setLastRequest] = useState<LessonRequest | null>(null);
   const [activeTab, setActiveTab] = useState<string>("form");
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const handleGenerateLesson = (lessonData: any) => {
+  const handleGenerateLesson = (lessonData: LessonResponse, request: LessonRequest) => {
     setGeneratedLesson(lessonData);
+    setLastRequest(request);
     setActiveTab("preview");
   };
 
   const handleRegenerateRequest = () => {
-    // In a real app, this would regenerate the content
-    // For demo, we'll just switch back to the form
-    setActiveTab("form");
+    if (lastRequest) {
+      setIsRegenerating(true);
+      // This will trigger regeneration with the same parameters
+      setTimeout(() => {
+        setActiveTab("form");
+        setIsRegenerating(false);
+      }, 100);
+    }
   };
 
   return (
@@ -42,7 +51,10 @@ const Generator = () => {
             </TabsList>
             
             <TabsContent value="form" className="mt-0">
-              <LessonForm onGenerateLesson={handleGenerateLesson} />
+              <LessonForm 
+                onGenerateLesson={handleGenerateLesson} 
+                initialValues={isRegenerating ? lastRequest : undefined}
+              />
             </TabsContent>
             
             <TabsContent value="preview" className="mt-0">

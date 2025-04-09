@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const PhoneLoginForm = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -12,6 +13,7 @@ const PhoneLoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +61,11 @@ const PhoneLoginForm = () => {
           title: "Login Successful",
           description: "You've been successfully logged in.",
         });
-        // For demo, store a simple session in localStorage
-        localStorage.setItem('courseGptUser', JSON.stringify({ 
-          isLoggedIn: true, 
-          phoneNumber 
-        }));
+        
+        // Use the login function from auth context
+        login(phoneNumber);
+        
+        // Redirect to dashboard
         navigate('/dashboard');
       } else {
         toast({

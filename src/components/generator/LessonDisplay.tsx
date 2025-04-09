@@ -7,17 +7,10 @@ import { Pencil, RotateCcw, Save, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-
-interface LessonData {
-  title: string;
-  description: string;
-  learningOutcomes: string[];
-  keyConcepts: string[];
-  activities: string[];
-}
+import { LessonResponse } from '@/services/openai';
 
 interface LessonDisplayProps {
-  lessonData: LessonData;
+  lessonData: LessonResponse;
   onRegenerateRequest: () => void;
 }
 
@@ -25,6 +18,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
   const [activeTab, setActiveTab] = useState("overview");
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
   const [editedValues, setEditedValues] = useState<Record<string, any>>({});
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
 
   const handleEditToggle = (field: string) => {
@@ -36,8 +30,8 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
       setEditedValues({
         ...editedValues,
         [field]: field === 'title' || field === 'description' 
-          ? lessonData[field as keyof LessonData] 
-          : [...(lessonData[field as keyof LessonData] as string[])]
+          ? lessonData[field as keyof LessonResponse] 
+          : [...(lessonData[field as keyof LessonResponse] as string[])]
       });
     }
     
@@ -78,6 +72,18 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
     setEditedValues({
       ...editedValues,
       [field]: newArray
+    });
+  };
+
+  const handleRegenerate = () => {
+    setIsRegenerating(true);
+    
+    // Call the regenerate function
+    onRegenerateRequest();
+    
+    toast({
+      title: "Regenerating Lesson",
+      description: "Creating a new version of your lesson...",
     });
   };
 
@@ -166,10 +172,11 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
           <Button
             variant="outline"
             size="sm"
-            onClick={onRegenerateRequest}
+            onClick={handleRegenerate}
             className="text-coursegpt-orange"
+            disabled={isRegenerating}
           >
-            <RotateCcw size={16} className="mr-1" />
+            <RotateCcw size={16} className={`mr-1 ${isRegenerating ? 'animate-spin' : ''}`} />
             Regenerate
           </Button>
         </div>

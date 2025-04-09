@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,35 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoaderCircle } from 'lucide-react';
+import { generateLesson, LessonRequest, LessonResponse } from '@/services/openai';
 
 interface LessonFormProps {
-  onGenerateLesson: (lessonData: any) => void;
+  onGenerateLesson: (lessonData: LessonResponse, request: LessonRequest) => void;
+  initialValues?: LessonRequest | null;
 }
 
-const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
+const LessonForm = ({ onGenerateLesson, initialValues }: LessonFormProps) => {
   const [topic, setTopic] = useState('');
   const [level, setLevel] = useState('beginner');
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  // Set initial values if provided (for regeneration)
+  useEffect(() => {
+    if (initialValues) {
+      setTopic(initialValues.topic);
+      setLevel(initialValues.level);
+      setDescription(initialValues.description || '');
+      
+      // Trigger form submission automatically for regeneration
+      const submitForm = async () => {
+        await handleSubmit(new Event('submit') as React.FormEvent);
+      };
+      
+      submitForm();
+    }
+  }, [initialValues]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,52 +52,29 @@ const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
     setIsGenerating(true);
     
     try {
-      // This is a placeholder for the real API call to OpenAI
-      // In a production app, this would be a fetch call to your backend
-      // which would then call the OpenAI API
+      const request: LessonRequest = {
+        topic,
+        level,
+        description: description || undefined
+      };
       
-      // Simulate API delay
-      setTimeout(() => {
-        // Generate a lesson based on the form data
-        const generatedLesson = {
-          title: `${topic} for ${level.charAt(0).toUpperCase() + level.slice(1)}s`,
-          description: description || `A comprehensive lesson about ${topic} for ${level} students.`,
-          learningOutcomes: [
-            `Understand the core concepts of ${topic}`,
-            `Apply ${topic} principles in real-world scenarios`,
-            `Analyze the impact of ${topic} in the broader context`,
-            `Evaluate different approaches to ${topic}`
-          ],
-          keyConcepts: [
-            `Introduction to ${topic}`,
-            `History and evolution of ${topic}`,
-            `Core principles of ${topic}`,
-            `Advanced techniques in ${topic}`,
-            `Future trends in ${topic}`
-          ],
-          activities: [
-            `Group discussion: The importance of ${topic}`,
-            `Case study analysis: ${topic} in action`,
-            `Interactive exercise: Applying ${topic} principles`,
-            `Quiz: Test your knowledge of ${topic}`
-          ]
-        };
-        
-        onGenerateLesson(generatedLesson);
-        setIsGenerating(false);
-        
-        toast({
-          title: "Lesson Generated",
-          description: "Your lesson has been generated successfully!",
-        });
-      }, 3000);
+      // Call the OpenAI API service
+      const generatedLesson = await generateLesson(request);
+      
+      onGenerateLesson(generatedLesson, request);
+      
+      toast({
+        title: "Lesson Generated",
+        description: "Your lesson has been generated successfully!",
+      });
     } catch (error) {
       console.error('Error generating lesson:', error);
       toast({
         title: "Generation Failed",
-        description: "There was an error generating your lesson. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error generating your lesson. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsGenerating(false);
     }
   };
