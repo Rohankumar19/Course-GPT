@@ -73,7 +73,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -89,12 +89,12 @@
 
   .btn-outline {
     @apply border border-coursegpt-teal text-coursegpt-teal font-semibold py-2 px-6 rounded-md 
-      hover:bg-coursegpt-teal hover:text-white transition-all;
+      hover:bg-coursegpt-teal hover:text-white transition-all dark:text-coursegpt-teal dark:hover:text-white;
   }
 
   .input-primary {
-    @apply border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 
-      focus:ring-coursegpt-teal focus:border-transparent;
+    @apply border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 
+      focus:ring-coursegpt-teal focus:border-transparent dark:bg-gray-700 dark:text-white;
   }
 
   .card-hover {
