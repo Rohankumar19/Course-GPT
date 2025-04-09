@@ -19,6 +19,12 @@ export const generateLesson = async (request: LessonRequest): Promise<LessonResp
   try {
     console.log('Generating lesson for:', request);
     
+    // Check if API key is available
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("OpenAI API key is missing. Please set the VITE_OPENAI_API_KEY environment variable.");
+    }
+    
     const prompt = `
       Create a comprehensive lesson plan about "${request.topic}" for ${request.level} level students.
       ${request.description ? `Additional context: ${request.description}` : ''}
@@ -37,7 +43,7 @@ export const generateLesson = async (request: LessonRequest): Promise<LessonResp
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',

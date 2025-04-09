@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, BookOpen, Layout, Settings, LogOut, Calendar, Search } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { PlusCircle, BookOpen, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Sample course data for demo purposes

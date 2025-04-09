@@ -30,14 +30,19 @@ const LessonForm = ({ onGenerateLesson, initialValues }: LessonFormProps) => {
       
       // Trigger form submission automatically for regeneration
       const submitForm = async () => {
-        await handleSubmit(new Event('submit') as React.FormEvent);
+        // Create a synthetic FormEvent instead of using a raw Event
+        const syntheticEvent = {
+          preventDefault: () => {},
+        } as React.FormEvent<HTMLFormElement>;
+        
+        await handleSubmit(syntheticEvent);
       };
       
       submitForm();
     }
   }, [initialValues]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!topic) {
