@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pencil, RotateCcw, Save, X, Loader2 } from 'lucide-react';
+import { Pencil, RotateCcw, Save, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -19,10 +19,9 @@ interface LessonData {
 interface LessonDisplayProps {
   lessonData: LessonData;
   onRegenerateRequest: () => void;
-  isRegenerating?: boolean;
 }
 
-const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false }: LessonDisplayProps) => {
+const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
   const [editedValues, setEditedValues] = useState<Record<string, any>>({});
@@ -85,12 +84,12 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
   const renderEditableField = (field: string, value: string | string[]) => {
     if (!editMode[field]) {
       if (typeof value === 'string') {
-        return <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{value}</p>;
+        return <p className="text-gray-700 whitespace-pre-line">{value}</p>;
       } else {
         return (
           <ul className="list-disc pl-5 space-y-1">
             {value.map((item, index) => (
-              <li key={index} className="text-gray-700 dark:text-gray-300">{item}</li>
+              <li key={index} className="text-gray-700">{item}</li>
             ))}
           </ul>
         );
@@ -149,7 +148,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
       variant="ghost"
       size="sm"
       onClick={() => handleEditToggle(field)}
-      className={editMode[field] ? "text-green-600" : "text-gray-500 dark:text-gray-400"}
+      className={editMode[field] ? "text-green-600" : "text-gray-500"}
     >
       {editMode[field] ? <Save size={16} /> : <Pencil size={16} />}
       <span className="ml-1">{editMode[field] ? "Save" : "Edit"}</span>
@@ -157,9 +156,9 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
   );
 
   return (
-    <Card className="w-full dark:border-gray-700">
+    <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-2xl font-bold text-coursegpt-blue dark:text-white">
+        <CardTitle className="text-2xl font-bold text-coursegpt-blue">
           {editMode.title ? renderEditableField('title', lessonData.title) : lessonData.title}
         </CardTitle>
         <div className="flex space-x-2">
@@ -169,19 +168,9 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
             size="sm"
             onClick={onRegenerateRequest}
             className="text-coursegpt-orange"
-            disabled={isRegenerating}
           >
-            {isRegenerating ? (
-              <>
-                <Loader2 size={16} className="mr-1 animate-spin" />
-                Regenerating...
-              </>
-            ) : (
-              <>
-                <RotateCcw size={16} className="mr-1" />
-                Regenerate
-              </>
-            )}
+            <RotateCcw size={16} className="mr-1" />
+            Regenerate
           </Button>
         </div>
       </CardHeader>
@@ -198,7 +187,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
           <TabsContent value="overview" className="mt-4">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-medium text-coursegpt-teal dark:text-coursegpt-teal">Lesson Description</h3>
+                <h3 className="text-lg font-medium text-coursegpt-teal">Lesson Description</h3>
                 {renderEditButton('description')}
               </div>
               {renderEditableField('description', lessonData.description)}
@@ -208,7 +197,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
           <TabsContent value="outcomes" className="mt-4">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-medium text-coursegpt-teal dark:text-coursegpt-teal">Learning Outcomes</h3>
+                <h3 className="text-lg font-medium text-coursegpt-teal">Learning Outcomes</h3>
                 {renderEditButton('learningOutcomes')}
               </div>
               {renderEditableField('learningOutcomes', lessonData.learningOutcomes)}
@@ -218,7 +207,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
           <TabsContent value="concepts" className="mt-4">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-medium text-coursegpt-teal dark:text-coursegpt-teal">Key Concepts</h3>
+                <h3 className="text-lg font-medium text-coursegpt-teal">Key Concepts</h3>
                 {renderEditButton('keyConcepts')}
               </div>
               {renderEditableField('keyConcepts', lessonData.keyConcepts)}
@@ -228,7 +217,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest, isRegenerating = false
           <TabsContent value="activities" className="mt-4">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-medium text-coursegpt-teal dark:text-coursegpt-teal">Activities & Examples</h3>
+                <h3 className="text-lg font-medium text-coursegpt-teal">Activities & Examples</h3>
                 {renderEditButton('activities')}
               </div>
               {renderEditableField('activities', lessonData.activities)}

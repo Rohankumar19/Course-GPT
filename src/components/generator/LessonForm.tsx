@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoaderCircle } from 'lucide-react';
-import { generateLesson } from '@/services/openai';
 
 interface LessonFormProps {
   onGenerateLesson: (lessonData: any) => void;
@@ -35,19 +34,45 @@ const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
     setIsGenerating(true);
     
     try {
-      const lessonData = await generateLesson({
-        topic,
-        level,
-        description
-      });
+      // This is a placeholder for the real API call to OpenAI
+      // In a production app, this would be a fetch call to your backend
+      // which would then call the OpenAI API
       
-      onGenerateLesson(lessonData);
-      setIsGenerating(false);
-      
-      toast({
-        title: "Lesson Generated",
-        description: "Your lesson has been generated successfully!",
-      });
+      // Simulate API delay
+      setTimeout(() => {
+        // Generate a lesson based on the form data
+        const generatedLesson = {
+          title: `${topic} for ${level.charAt(0).toUpperCase() + level.slice(1)}s`,
+          description: description || `A comprehensive lesson about ${topic} for ${level} students.`,
+          learningOutcomes: [
+            `Understand the core concepts of ${topic}`,
+            `Apply ${topic} principles in real-world scenarios`,
+            `Analyze the impact of ${topic} in the broader context`,
+            `Evaluate different approaches to ${topic}`
+          ],
+          keyConcepts: [
+            `Introduction to ${topic}`,
+            `History and evolution of ${topic}`,
+            `Core principles of ${topic}`,
+            `Advanced techniques in ${topic}`,
+            `Future trends in ${topic}`
+          ],
+          activities: [
+            `Group discussion: The importance of ${topic}`,
+            `Case study analysis: ${topic} in action`,
+            `Interactive exercise: Applying ${topic} principles`,
+            `Quiz: Test your knowledge of ${topic}`
+          ]
+        };
+        
+        onGenerateLesson(generatedLesson);
+        setIsGenerating(false);
+        
+        toast({
+          title: "Lesson Generated",
+          description: "Your lesson has been generated successfully!",
+        });
+      }, 3000);
     } catch (error) {
       console.error('Error generating lesson:', error);
       toast({
@@ -60,11 +85,11 @@ const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
   };
 
   return (
-    <Card className="w-full dark:border-gray-700">
+    <Card className="w-full">
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
               Lesson Topic <span className="text-red-500">*</span>
             </label>
             <Input
@@ -78,7 +103,7 @@ const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="level" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="level" className="block text-sm font-medium text-gray-700">
               Course Level
             </label>
             <Select value={level} onValueChange={setLevel}>
@@ -94,7 +119,7 @@ const LessonForm = ({ onGenerateLesson }: LessonFormProps) => {
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
               Additional Description
             </label>
             <Textarea
