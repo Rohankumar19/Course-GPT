@@ -4,7 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/landing/Footer';
 import LessonForm from '@/components/generator/LessonForm';
 import LessonDisplay from '@/components/generator/LessonDisplay';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Generator = () => {
   const [generatedLesson, setGeneratedLesson] = useState<any>(null);
