@@ -34,8 +34,11 @@ const Generator = () => {
         description: "Please wait while we create your lesson content...",
       });
       
+      // Generate the lesson - we'll always get a result because the service has fallbacks
       const lessonData = await generateLesson(request);
       setGeneratedLesson(lessonData);
+      
+      // Always move to the review tab whether we got real or fallback content
       setActiveTab("review");
       
       toast({
@@ -45,11 +48,10 @@ const Generator = () => {
     } catch (error) {
       console.error('Error generating lesson:', error);
       
-      // Show error toast but still proceed with default data
+      // Even if there's an error, we'll use fallback data
       toast({
-        title: "Generation Warning",
-        description: "There was an issue with the AI generation. Using sample content instead.",
-        variant: "destructive",
+        title: "Using Sample Content",
+        description: "We're showing you sample content since there was an issue with generation.",
       });
       
       // Create a simple fallback lesson so we can still proceed to review tab

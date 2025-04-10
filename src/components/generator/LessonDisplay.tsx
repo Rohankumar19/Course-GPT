@@ -7,11 +7,10 @@ import { Pencil, RotateCcw, Save, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { LessonResponse } from '@/services/openai';
-import { LessonActivity } from '@/types/course';
+import { Lesson, LessonActivity, Assessment } from '@/types/course';
 
 interface LessonDisplayProps {
-  lessonData: LessonResponse;
+  lessonData: Lesson;
   onRegenerateRequest: () => void;
 }
 
@@ -31,10 +30,10 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
       setEditedValues({
         ...editedValues,
         [field]: field === 'title' || field === 'description' 
-          ? lessonData[field as keyof LessonResponse] 
-          : Array.isArray(lessonData[field as keyof LessonResponse]) 
-            ? [...(lessonData[field as keyof LessonResponse] as any[])]
-            : lessonData[field as keyof LessonResponse]
+          ? lessonData[field as keyof Lesson] 
+          : Array.isArray(lessonData[field as keyof Lesson]) 
+            ? [...(lessonData[field as keyof Lesson] as any[])]
+            : lessonData[field as keyof Lesson]
       });
     }
     
@@ -107,24 +106,38 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
           // This is for activities or assessments
           return (
             <div className="space-y-4">
-              {value.map((item: any, index: number) => (
-                <div key={index} className="border p-3 rounded-md">
-                  <h4 className="font-medium">{item.title}</h4>
-                  <p className="text-gray-600 text-sm">{item.description}</p>
-                  {item.content && <p className="mt-2 text-sm">{item.content}</p>}
-                  {item.type && <p className="mt-1 text-xs text-blue-600">{item.type}</p>}
-                  {item.questions && (
-                    <div className="mt-2">
-                      <h5 className="text-sm font-medium">Questions:</h5>
-                      <ul className="list-decimal pl-5 text-sm">
-                        {item.questions.map((q: any, qIndex: number) => (
-                          <li key={qIndex}>{q.question}</li>
-                        ))}
-                      </ul>
+              {value.map((item: LessonActivity | Assessment, index: number) => {
+                if ('questions' in item) {
+                  // This is an assessment
+                  return (
+                    <div key={index} className="border p-3 rounded-md">
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-gray-600 text-sm">{item.description}</p>
+                      {item.type && <p className="mt-1 text-xs text-blue-600">{item.type}</p>}
+                      {item.questions && (
+                        <div className="mt-2">
+                          <h5 className="text-sm font-medium">Questions:</h5>
+                          <ul className="list-decimal pl-5 text-sm">
+                            {item.questions.map((q: any, qIndex: number) => (
+                              <li key={qIndex}>{q.question}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                } else {
+                  // This is an activity
+                  return (
+                    <div key={index} className="border p-3 rounded-md">
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-gray-600 text-sm">{item.description}</p>
+                      {item.content && <p className="mt-2 text-sm whitespace-pre-line">{item.content}</p>}
+                      {item.type && <p className="mt-1 text-xs text-blue-600">{item.type}</p>}
+                    </div>
+                  );
+                }
+              })}
             </div>
           );
         }

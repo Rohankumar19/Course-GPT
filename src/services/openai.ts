@@ -9,14 +9,8 @@ export const generateLesson = async (request: LessonGenerateRequest): Promise<Le
   try {
     console.log('Generating lesson for:', request);
     
-    // Check if API key is available
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    
-    // If no API key is available, return mock data immediately without trying API call
-    if (!apiKey) {
-      console.log('No API key found, using fallback data');
-      return createFallbackLesson(request);
-    }
+    // Use the API key - either from env var or hardcoded for demo purposes
+    let apiKey = import.meta.env.VITE_OPENAI_API_KEY || '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';
     
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
