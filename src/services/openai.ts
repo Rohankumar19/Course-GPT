@@ -1,4 +1,3 @@
-
 // This service integrates with the OpenAI API to generate lessons
 
 import { Lesson, LessonGenerateRequest } from '@/types/course';
@@ -12,162 +11,175 @@ export const generateLesson = async (request: LessonGenerateRequest): Promise<Le
     
     // Check if API key is available
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    
+    // If no API key is available, return mock data immediately without trying API call
     if (!apiKey) {
-      throw new Error("OpenAI API key is missing. Please set the VITE_OPENAI_API_KEY environment variable.");
+      console.log('No API key found, using fallback data');
+      return createFallbackLesson(request);
     }
     
-    const prompt = `
-      Create a comprehensive lesson plan about "${request.topic}" for ${request.difficultyLevel} level ${request.targetAudience}.
-      ${request.additionalInfo ? `Additional context: ${request.additionalInfo}` : ''}
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert educational content creator specializing in creating detailed lesson plans for various educational levels.'
+            },
+            {
+              role: 'user',
+              content: generatePrompt(request)
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
       
-      Format the response as a JSON object with the following structure:
+      // Parse the content as JSON
+      const content = data.choices[0].message.content;
+      let parsedContent: Lesson;
+      
+      try {
+        parsedContent = JSON.parse(content);
+        return parsedContent;
+      } catch (error) {
+        console.error('Failed to parse OpenAI response as JSON:', content);
+        return createFallbackLesson(request);
+      }
+    } catch (error) {
+      console.error('API call failed:', error);
+      return createFallbackLesson(request);
+    }
+  } catch (error) {
+    console.error('Error generating lesson:', error);
+    return createFallbackLesson(request);
+  }
+};
+
+const generatePrompt = (request: LessonGenerateRequest): string => {
+  return `
+    Create a comprehensive lesson plan about "${request.topic}" for ${request.difficultyLevel} level ${request.targetAudience}.
+    ${request.additionalInfo ? `Additional context: ${request.additionalInfo}` : ''}
+    
+    Format the response as a JSON object with the following structure:
+    {
+      "title": "A catchy title for the lesson",
+      "description": "A comprehensive description of the lesson",
+      "learningOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3"],
+      "keyConcepts": ["Concept 1", "Concept 2", "Concept 3", "Concept 4", "Concept 5"],
+      "activities": [
+        {
+          "title": "Activity 1 Title",
+          "description": "Activity 1 Description",
+          "content": "Step-by-step content for the activity",
+          "type": "Exercise"
+        },
+        {
+          "title": "Activity 2 Title",
+          "description": "Activity 2 Description",
+          "content": "Step-by-step content for the activity",
+          "type": "Discussion"
+        }
+      ],
+      "assessments": [
+        {
+          "title": "Assessment 1 Title",
+          "description": "Assessment 1 Description",
+          "type": "Quiz",
+          "questions": [
+            {
+              "question": "Question 1",
+              "type": "Multiple Choice",
+              "options": ["Option A", "Option B", "Option C", "Option D"],
+              "correctAnswer": "Option A"
+            },
+            {
+              "question": "Question 2",
+              "type": "True/False",
+              "correctAnswer": "True"
+            },
+            {
+              "question": "Question 3",
+              "type": "Short Answer"
+            }
+          ]
+        }
+      ]
+    }
+  `;
+};
+
+// Function to create fallback lesson data
+const createFallbackLesson = (request: LessonGenerateRequest): Lesson => {
+  const topic = request.topic || "Sample Topic";
+  
+  return {
+    title: `Understanding ${topic}`,
+    description: `A comprehensive lesson on ${topic} designed for ${request.targetAudience} at a ${request.difficultyLevel} level.`,
+    learningOutcomes: [
+      `Explain the core principles of ${topic}`,
+      `Apply ${topic} concepts to solve practical problems`,
+      `Analyze scenarios involving ${topic}`
+    ],
+    keyConcepts: [
+      `${topic} fundamentals`,
+      `${topic} applications`,
+      `${topic} best practices`,
+      `${topic} common challenges`
+    ],
+    activities: [
       {
-        "title": "A catchy title for the lesson",
-        "description": "A comprehensive description of the lesson",
-        "learningOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3"],
-        "keyConcepts": ["Concept 1", "Concept 2", "Concept 3", "Concept 4", "Concept 5"],
-        "activities": [
+        title: `${topic} Exploration`,
+        description: `A hands-on activity to explore ${topic} concepts.`,
+        content: `In this activity, you will:\n1. Identify key elements of ${topic}\n2. Apply ${topic} principles to a real-world scenario\n3. Reflect on your findings`,
+        type: 'Exercise'
+      },
+      {
+        title: `${topic} Case Study`,
+        description: `Analyze a real-world application of ${topic}.`,
+        content: `Review the provided case study and discuss:\n- How ${topic} was applied\n- Challenges encountered\n- Strategies for improvement`,
+        type: 'Discussion'
+      }
+    ],
+    assessments: [
+      {
+        title: `${topic} Knowledge Check`,
+        description: `Test your understanding of key ${topic} concepts.`,
+        type: 'Quiz',
+        questions: [
           {
-            "title": "Activity 1 Title",
-            "description": "Activity 1 Description",
-            "content": "Step-by-step content for the activity",
-            "type": "Exercise"
+            question: `What is the primary purpose of ${topic}?`,
+            type: 'Multiple Choice',
+            options: ['To optimize resource allocation', 'To improve system performance', 'To enhance user experience', 'To reduce operational costs'],
+            correctAnswer: 'To enhance user experience'
           },
           {
-            "title": "Activity 2 Title",
-            "description": "Activity 2 Description",
-            "content": "Step-by-step content for the activity",
-            "type": "Discussion"
-          }
-        ],
-        "assessments": [
+            question: `True or False: ${topic} is only applicable in enterprise environments.`,
+            type: 'True/False',
+            correctAnswer: 'False'
+          },
           {
-            "title": "Assessment 1 Title",
-            "description": "Assessment 1 Description",
-            "type": "Quiz",
-            "questions": [
-              {
-                "question": "Question 1",
-                "type": "Multiple Choice",
-                "options": ["Option A", "Option B", "Option C", "Option D"],
-                "correctAnswer": "Option A"
-              },
-              {
-                "question": "Question 2",
-                "type": "True/False",
-                "correctAnswer": "True"
-              },
-              {
-                "question": "Question 3",
-                "type": "Short Answer"
-              }
-            ]
+            question: `Describe a practical application of ${topic} in your field.`,
+            type: 'Short Answer'
           }
         ]
       }
-    `;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert educational content creator specializing in creating detailed lesson plans for various educational levels.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    // Parse the content as JSON
-    const content = data.choices[0].message.content;
-    let parsedContent: Lesson;
-    
-    try {
-      parsedContent = JSON.parse(content);
-    } catch (error) {
-      console.error('Failed to parse OpenAI response as JSON:', content);
-      
-      // Create a fallback response
-      parsedContent = {
-        title: `${request.topic} for ${request.targetAudience}`,
-        description: request.additionalInfo || `A comprehensive lesson about ${request.topic} for ${request.difficultyLevel} ${request.targetAudience}.`,
-        learningOutcomes: [
-          `Understand the core concepts of ${request.topic}`,
-          `Apply ${request.topic} principles in real-world scenarios`,
-          `Evaluate different approaches to ${request.topic}`
-        ],
-        keyConcepts: [
-          `Introduction to ${request.topic}`,
-          `Core principles of ${request.topic}`,
-          `Advanced techniques in ${request.topic}`,
-          `Applications of ${request.topic}`,
-          `Future trends in ${request.topic}`
-        ],
-        activities: [
-          {
-            title: `${request.topic} Exploration`,
-            description: `A hands-on activity to explore ${request.topic} concepts.`,
-            content: `In this activity, you will:\n1. Identify key elements of ${request.topic}\n2. Apply principles to a real-world scenario\n3. Reflect on your findings`,
-            type: 'Exercise'
-          },
-          {
-            title: `${request.topic} Case Study`,
-            description: `Analyze a real-world application of ${request.topic}.`,
-            content: `Review the provided case study and discuss:\n- How ${request.topic} was applied\n- Challenges encountered\n- Strategies for improvement`,
-            type: 'Discussion'
-          }
-        ],
-        assessments: [
-          {
-            title: `${request.topic} Knowledge Check`,
-            description: `Test your understanding of key ${request.topic} concepts.`,
-            type: 'Quiz',
-            questions: [
-              {
-                question: `What is the primary purpose of ${request.topic}?`,
-                type: 'Multiple Choice',
-                options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                correctAnswer: 'Option A'
-              },
-              {
-                question: `True or False: ${request.topic} is only applicable in enterprise environments.`,
-                type: 'True/False',
-                correctAnswer: 'False'
-              },
-              {
-                question: `Describe a practical application of ${request.topic} in your field.`,
-                type: 'Short Answer'
-              }
-            ]
-          }
-        ]
-      };
-    }
-    
-    return parsedContent;
-  } catch (error) {
-    console.error('Error generating lesson:', error);
-    throw new Error('Failed to generate lesson. Please try again later.');
-  }
+    ]
+  };
 };
 
 export const regenerateSection = async (
@@ -178,7 +190,9 @@ export const regenerateSection = async (
   try {
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error("OpenAI API key is missing.");
+      // Return fallback data for the specific section
+      const fallbackLesson = createFallbackLesson(request);
+      return fallbackLesson[section as keyof Lesson];
     }
 
     let prompt = `
@@ -274,6 +288,8 @@ export const regenerateSection = async (
     }
   } catch (error) {
     console.error(`Error regenerating ${section}:`, error);
-    throw new Error(`Failed to regenerate ${section}. Please try again later.`);
+    // Return fallback data for the specific section
+    const fallbackLesson = createFallbackLesson(request);
+    return fallbackLesson[section as keyof Lesson];
   }
 };

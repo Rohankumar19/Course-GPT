@@ -28,6 +28,12 @@ const Generator = () => {
     setIsGenerating(true);
     
     try {
+      // Show a loading toast
+      toast({
+        title: "Generating Lesson",
+        description: "Please wait while we create your lesson content...",
+      });
+      
       const lessonData = await generateLesson(request);
       setGeneratedLesson(lessonData);
       setActiveTab("review");
@@ -38,11 +44,71 @@ const Generator = () => {
       });
     } catch (error) {
       console.error('Error generating lesson:', error);
+      
+      // Show error toast but still proceed with default data
       toast({
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "There was an error generating your lesson. Please try again.",
+        title: "Generation Warning",
+        description: "There was an issue with the AI generation. Using sample content instead.",
         variant: "destructive",
       });
+      
+      // Create a simple fallback lesson so we can still proceed to review tab
+      const fallbackLesson: Lesson = {
+        title: `Understanding ${request.topic}`,
+        description: `A comprehensive lesson on ${request.topic} designed for ${request.targetAudience} at a ${request.difficultyLevel} level.`,
+        learningOutcomes: [
+          `Explain the core principles of ${request.topic}`,
+          `Apply ${request.topic} concepts to solve practical problems`,
+          `Analyze scenarios involving ${request.topic}`
+        ],
+        keyConcepts: [
+          `${request.topic} fundamentals`,
+          `${request.topic} applications`,
+          `${request.topic} best practices`,
+          `${request.topic} common challenges`
+        ],
+        activities: [
+          {
+            title: `${request.topic} Exploration`,
+            description: `A hands-on activity to explore ${request.topic} concepts.`,
+            content: `In this activity, you will:\n1. Identify key elements of ${request.topic}\n2. Apply ${request.topic} principles to a real-world scenario\n3. Reflect on your findings`,
+            type: 'Exercise'
+          },
+          {
+            title: `${request.topic} Case Study`,
+            description: `Analyze a real-world application of ${request.topic}.`,
+            content: `Review the provided case study and discuss:\n- How ${request.topic} was applied\n- Challenges encountered\n- Strategies for improvement`,
+            type: 'Discussion'
+          }
+        ],
+        assessments: [
+          {
+            title: `${request.topic} Knowledge Check`,
+            description: `Test your understanding of key ${request.topic} concepts.`,
+            type: 'Quiz',
+            questions: [
+              {
+                question: `What is the primary purpose of ${request.topic}?`,
+                type: 'Multiple Choice',
+                options: ['To optimize resource allocation', 'To improve system performance', 'To enhance user experience', 'To reduce operational costs'],
+                correctAnswer: 'To enhance user experience'
+              },
+              {
+                question: `True or False: ${request.topic} is only applicable in enterprise environments.`,
+                type: 'True/False',
+                correctAnswer: 'False'
+              },
+              {
+                question: `Describe a practical application of ${request.topic} in your field.`,
+                type: 'Short Answer'
+              }
+            ]
+          }
+        ]
+      };
+      
+      setGeneratedLesson(fallbackLesson);
+      setActiveTab("review");
     } finally {
       setIsGenerating(false);
     }
