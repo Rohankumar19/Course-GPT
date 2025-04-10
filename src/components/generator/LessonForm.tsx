@@ -4,43 +4,33 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoaderCircle } from 'lucide-react';
-import { generateLesson, LessonRequest, LessonResponse } from '@/services/openai';
+import { LessonGenerateRequest } from '@/types/course';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSearchParams } from 'react-router-dom';
 
 interface LessonFormProps {
-  onGenerateLesson: (lessonData: LessonResponse, request: LessonRequest) => void;
-  initialValues?: LessonRequest | null;
+  onGenerateLesson: (request: LessonGenerateRequest) => void;
+  isGenerating: boolean;
 }
 
-const LessonForm = ({ onGenerateLesson, initialValues }: LessonFormProps) => {
+const LessonForm = ({ onGenerateLesson, isGenerating }: LessonFormProps) => {
   const [topic, setTopic] = useState('');
-  const [level, setLevel] = useState('beginner');
-  const [description, setDescription] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [targetAudience, setTargetAudience] = useState('Beginners');
+  const [difficultyLevel, setDifficultyLevel] = useState('Beginner');
+  const [additionalInfo, setAdditionalInfo] = useState('');
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
-  // Set initial values if provided (for regeneration)
+  // Check if we have a courseId from the URL query
   useEffect(() => {
-    if (initialValues) {
-      setTopic(initialValues.topic);
-      setLevel(initialValues.level);
-      setDescription(initialValues.description || '');
-      
-      // Trigger form submission automatically for regeneration
-      const submitForm = async () => {
-        // Create a synthetic FormEvent instead of using a raw Event
-        const syntheticEvent = {
-          preventDefault: () => {},
-        } as React.FormEvent<HTMLFormElement>;
-        
-        await handleSubmit(syntheticEvent);
-      };
-      
-      submitForm();
+    const courseId = searchParams.get('courseId');
+    if (courseId) {
+      // In a real app, we could fetch course details here and pre-populate the form
+      console.log('Course ID from URL:', courseId);
     }
-  }, [initialValues]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,33 +44,22 @@ const LessonForm = ({ onGenerateLesson, initialValues }: LessonFormProps) => {
       return;
     }
     
-    setIsGenerating(true);
-    
     try {
-      const request: LessonRequest = {
+      const request: LessonGenerateRequest = {
         topic,
-        level,
-        description: description || undefined
+        targetAudience,
+        difficultyLevel,
+        additionalInfo: additionalInfo || undefined
       };
       
-      // Call the OpenAI API service
-      const generatedLesson = await generateLesson(request);
-      
-      onGenerateLesson(generatedLesson, request);
-      
-      toast({
-        title: "Lesson Generated",
-        description: "Your lesson has been generated successfully!",
-      });
+      onGenerateLesson(request);
     } catch (error) {
-      console.error('Error generating lesson:', error);
+      console.error('Error in form submission:', error);
       toast({
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "There was an error generating your lesson. Please try again.",
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "There was an error. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -96,55 +75,89 @@ const LessonForm = ({ onGenerateLesson, initialValues }: LessonFormProps) => {
               id="topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., Introduction to JavaScript, Climate Change, Renaissance Art"
+              placeholder="e.g., Introduction to Neural Networks"
               className="input-primary"
               required
             />
           </div>
           
-          <div className="space-y-2">
-            <label htmlFor="level" className="block text-sm font-medium text-gray-700">
-              Course Level
-            </label>
-            <Select value={level} onValueChange={setLevel}>
-              <SelectTrigger className="input-primary">
-                <SelectValue placeholder="Select course level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="audience" className="block text-sm font-medium text-gray-700">
+                Target Audience
+              </label>
+              <Select value={targetAudience} onValueChange={setTargetAudience}>
+                <SelectTrigger className="input-primary">
+                  <SelectValue placeholder="Select audience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Beginners">Beginners</SelectItem>
+                  <SelectItem value="Intermediate Students">Intermediate Students</SelectItem>
+                  <SelectItem value="Advanced Learners">Advanced Learners</SelectItem>
+                  <SelectItem value="Professionals">Professionals</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="level" className="block text-sm font-medium text-gray-700">
+                Difficulty Level
+              </label>
+              <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                <SelectTrigger className="input-primary">
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Beginner">Beginner</SelectItem>
+                  <SelectItem value="Intermediate">Intermediate</SelectItem>
+                  <SelectItem value="Advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Additional Description
+            <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700">
+              Additional Information (Optional)
             </label>
             <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add any specific details or requirements for your lesson (optional)"
+              id="additionalInfo"
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              placeholder="Add any specific requirements, teaching style preferences, or key points to include"
               className="input-primary min-h-[100px]"
             />
           </div>
           
-          <Button 
-            type="submit" 
-            className="w-full bg-coursegpt-orange hover:bg-coursegpt-orange/90 text-white"
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <>
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                Generating Lesson...
-              </>
-            ) : (
-              "Generate Lesson"
-            )}
-          </Button>
+          <div className="flex justify-end space-x-4 pt-2">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => {
+                setTopic('');
+                setTargetAudience('Beginners');
+                setDifficultyLevel('Beginner');
+                setAdditionalInfo('');
+              }}
+              disabled={isGenerating}
+            >
+              Clear
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate Content"
+              )}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

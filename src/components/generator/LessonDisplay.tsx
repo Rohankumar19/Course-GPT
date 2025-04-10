@@ -7,10 +7,10 @@ import { Pencil, RotateCcw, Save, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { LessonResponse } from '@/services/openai';
+import { Lesson, LessonActivity, Assessment } from '@/types/course';
 
 interface LessonDisplayProps {
-  lessonData: LessonResponse;
+  lessonData: Lesson;
   onRegenerateRequest: () => void;
 }
 
@@ -30,8 +30,10 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
       setEditedValues({
         ...editedValues,
         [field]: field === 'title' || field === 'description' 
-          ? lessonData[field as keyof LessonResponse] 
-          : [...(lessonData[field as keyof LessonResponse] as string[])]
+          ? lessonData[field as keyof Lesson] 
+          : Array.isArray(lessonData[field as keyof Lesson]) 
+            ? [...(lessonData[field as keyof Lesson] as any[])]
+            : lessonData[field as keyof Lesson]
       });
     }
     
@@ -87,19 +89,60 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
     });
   };
 
-  const renderEditableField = (field: string, value: string | string[]) => {
+  const renderEditableField = (field: string, value: any) => {
     if (!editMode[field]) {
       if (typeof value === 'string') {
         return <p className="text-gray-700 whitespace-pre-line">{value}</p>;
-      } else {
-        return (
-          <ul className="list-disc pl-5 space-y-1">
-            {value.map((item, index) => (
-              <li key={index} className="text-gray-700">{item}</li>
-            ))}
-          </ul>
-        );
+      } else if (Array.isArray(value) && value.length > 0) {
+        if (typeof value[0] === 'string') {
+          return (
+            <ul className="list-disc pl-5 space-y-1">
+              {value.map((item, index) => (
+                <li key={index} className="text-gray-700">{item}</li>
+              ))}
+            </ul>
+          );
+        } else if (typeof value[0] === 'object') {
+          // This is for activities or assessments
+          return (
+            <div className="space-y-4">
+              {value.map((item: LessonActivity | Assessment, index: number) => {
+                if ('questions' in item) {
+                  // This is an assessment
+                  return (
+                    <div key={index} className="border p-3 rounded-md">
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-gray-600 text-sm">{item.description}</p>
+                      {item.type && <p className="mt-1 text-xs text-blue-600">{item.type}</p>}
+                      {item.questions && (
+                        <div className="mt-2">
+                          <h5 className="text-sm font-medium">Questions:</h5>
+                          <ul className="list-decimal pl-5 text-sm">
+                            {item.questions.map((q: any, qIndex: number) => (
+                              <li key={qIndex}>{q.question}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                } else {
+                  // This is an activity
+                  return (
+                    <div key={index} className="border p-3 rounded-md">
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-gray-600 text-sm">{item.description}</p>
+                      {item.content && <p className="mt-2 text-sm whitespace-pre-line">{item.content}</p>}
+                      {item.type && <p className="mt-1 text-xs text-blue-600">{item.type}</p>}
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          );
+        }
       }
+      return <p className="text-gray-500 italic">No content</p>;
     }
 
     if (typeof value === 'string') {
@@ -116,37 +159,47 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
           className="w-full min-h-[100px] mb-2"
         />
       );
-    } else {
-      return (
-        <div className="space-y-2">
-          {(editedValues[field] as string[]).map((item, index) => (
-            <div key={index} className="flex items-center">
-              <Input
-                value={item}
-                onChange={(e) => handleArrayItemChange(field, index, e.target.value)}
-                className="flex-1 mr-2"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeArrayItem(field, index)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          ))}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => addArrayItem(field)}
-            className="text-coursegpt-teal"
-          >
-            Add Item
-          </Button>
-        </div>
-      );
+    } else if (Array.isArray(value) && value.length > 0) {
+      if (typeof value[0] === 'string') {
+        return (
+          <div className="space-y-2">
+            {(editedValues[field] as string[]).map((item, index) => (
+              <div key={index} className="flex items-center">
+                <Input
+                  value={item}
+                  onChange={(e) => handleArrayItemChange(field, index, e.target.value)}
+                  className="flex-1 mr-2"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeArrayItem(field, index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+            ))}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => addArrayItem(field)}
+              className="text-coursegpt-teal"
+            >
+              Add Item
+            </Button>
+          </div>
+        );
+      } else {
+        // For complex objects like activities or assessments, we would need more specialized editors
+        return (
+          <div className="p-3 border rounded bg-gray-50">
+            <p className="text-sm text-gray-600">Editing complex content is not supported in this view</p>
+          </div>
+        );
+      }
     }
+    return <p className="text-gray-500 italic">No content to edit</p>;
   };
 
   const renderEditButton = (field: string) => (
