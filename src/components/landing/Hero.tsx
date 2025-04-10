@@ -27,7 +27,7 @@ const Hero = () => {
               </Button>
             </Link>
             <Link to="/generator">
-              <Button size="lg" variant="outline" className="bg-[#003366] border-[#003366] text-white hover:bg-[#003366]/90">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 Try the Generator
               </Button>
             </Link>

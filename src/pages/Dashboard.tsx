@@ -4,12 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlusCircle, BookOpen, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Sample course data for demo purposes
@@ -17,7 +16,7 @@ const Dashboard = () => {
     {
       id: 1,
       title: "Introduction to Web Development",
-      lastUpdated: "Apr 10, 2025",
+      lastUpdated: "Apr 9, 2025",
       description: "Learn the fundamentals of web development including HTML, CSS, and JavaScript.",
       modules: 2,
       level: "beginner",
@@ -45,10 +44,6 @@ const Dashboard = () => {
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     course.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleViewCourse = (courseId: number) => {
-    navigate(`/course/${courseId}`);
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -129,13 +124,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => handleViewCourse(course.id)}
-                >
-                  View Course
-                </Button>
+                <Button variant="outline" className="w-full">View Course</Button>
               </CardContent>
             </Card>
           ))}
