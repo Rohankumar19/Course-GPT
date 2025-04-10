@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +16,7 @@ interface LessonDisplayProps {
 const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
-  const [editedValues, setEditedValues] = useState<Record<string, any>>({});
+  const [editedValues, setEditedValues] = useState<Record<string, unknown>>({});
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
 
@@ -32,7 +31,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
         [field]: field === 'title' || field === 'description' 
           ? lessonData[field as keyof Lesson] 
           : Array.isArray(lessonData[field as keyof Lesson]) 
-            ? [...(lessonData[field as keyof Lesson] as any[])]
+            ? [...(lessonData[field as keyof Lesson] as unknown[])]
             : lessonData[field as keyof Lesson]
       });
     }
@@ -89,7 +88,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
     });
   };
 
-  const renderEditableField = (field: string, value: any) => {
+  const renderEditableField = (field: string, value: unknown) => {
     if (!editMode[field]) {
       if (typeof value === 'string') {
         return <p className="text-gray-700 whitespace-pre-line">{value}</p>;
@@ -102,12 +101,12 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
               ))}
             </ul>
           );
-        } else if (typeof value[0] === 'object') {
+        } else if (typeof value[0] === 'object' && value[0] !== null) {
           // This is for activities or assessments
           return (
             <div className="space-y-4">
               {value.map((item: LessonActivity | Assessment, index: number) => {
-                if ('questions' in item) {
+                if ('questions' in item && Array.isArray(item.questions)) {
                   // This is an assessment
                   return (
                     <div key={index} className="border p-3 rounded-md">
@@ -118,7 +117,7 @@ const LessonDisplay = ({ lessonData, onRegenerateRequest }: LessonDisplayProps) 
                         <div className="mt-2">
                           <h5 className="text-sm font-medium">Questions:</h5>
                           <ul className="list-decimal pl-5 text-sm">
-                            {item.questions.map((q: any, qIndex: number) => (
+                            {item.questions.map((q: { question: string }, qIndex: number) => (
                               <li key={qIndex}>{q.question}</li>
                             ))}
                           </ul>

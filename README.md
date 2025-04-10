@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# 📘 CourseGPT – AI-Powered Course Authoring Platform
 
-## Project info
+**CourseGPT** is an elegant frontend web app that empowers educators and creators to build structured, interactive, and AI-generated courses in just a few clicks. With pixel-perfect designs and OpenAI integration, CourseGPT streamlines the way lessons, modules, and assessments are created.
 
-**URL**: https://lovable.dev/projects/f2446215-5e77-4d94-b31e-f017f92e3f90
+> ✨ Built with **React + TailwindCSS + shadcn/ui + OpenAI** and bundled by **Bun + Vite** for blazing-fast development!
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Key Features
 
-**Use Lovable**
+### 🎯 AI Lesson Generator
+- Generate lesson titles, descriptions, outcomes, key concepts, activities, and assessments.
+- One-click **regenerate** functionality for better results using OpenAI.
+- Fully editable review interface.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f2446215-5e77-4d94-b31e-f017f92e3f90) and start prompting.
+### 📚 Module & Course Management
+- Add, delete, and edit modules on the fly.
+- View course dashboard with pixel-perfect UI.
+- Organized module sections with intuitive trash and edit icons.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🎨 Pixel-Perfect UI
+- Seamless, responsive transitions across:
+  - **Dashboard**
+  - **Create Course**
+  - **Generate Lesson**
+  - **Review & Edit**
+  - **Success Page**
+- Built to match Figma designs with near pixel-to-pixel accuracy.
 
-**Use your preferred IDE**
+### ⚙️ Tech Highlights
+- 💨 Vite + Bun for speed
+- 🎨 Tailwind CSS for rapid styling
+- 🧩 shadcn/ui for accessible and beautiful UI components
+- 🧠 OpenAI API integration for content generation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🗂 Project Structure (Simplified)
 
-Follow these steps:
+```
+Course_GPT/
+└── course-craft-gen-59/
+    ├── index.html
+    ├── package.json
+    ├── tailwind.config.ts
+    ├── vite.config.ts
+    ├── tsconfig.json
+    ├── components.json
+    ├── src/
+    │   ├── components/       # UI Components (Button, Cards, etc.)
+    │   ├── pages/            # Page-level views (Dashboard, Editor, etc.)
+    │   ├── lib/              # OpenAI API integration
+    │   ├── styles/           # Tailwind and global CSS
+    │   └── main.tsx          # Entry point
+    └── public/               # Static assets (images, etc.)
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🚀 Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 📦 Prerequisites
+- Node.js or Bun (recommended)
+- OpenAI API Key
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 🧪 Installation
+
+```bash
+# If you use bun
+bun install
+
+# Or with npm
+npm install
+```
+
+### 🔑 Add your OpenAI API key
+
+Create a `.env` file in the root with the following:
+
+```env
+VITE_OPENAI_API_KEY=sk-...
+```
+
+> ⚠️ Note: This is a frontend-only project. Do **not** use sensitive API keys in production without a backend proxy.
+
+### 🏃 Run Locally
+
+```bash
+bun run dev
+# or
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🖼️ App Screens Overview
 
-**Use GitHub Codespaces**
+- `Dashboard`: View all courses and modules
+- `View Course`: See detailed structure
+- `Generate Lesson`: Opens an AI-assisted generation form
+- `Review Page`: Edit, regenerate, and finalize lesson content
+- `Success Page`: Confirmation and redirection
+- `Create Course`: Pixel-perfect form UI for new courses
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🔧 Tools Used
 
-This project is built with:
+| Tool           | Purpose                                |
+|----------------|----------------------------------------|
+| **React**      | Component-based frontend               |
+| **TailwindCSS**| Rapid, utility-first styling           |
+| **shadcn/ui**  | UI kit built on Radix + Tailwind       |
+| **OpenAI API** | AI content generation                  |
+| **Vite**       | Fast frontend build tool               |
+| **Bun**        | JS runtime + package manager           |
+| **Lucide Icons**| Icon library used with shadcn         |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 🧠 Future Ideas
 
-Simply open [Lovable](https://lovable.dev/projects/f2446215-5e77-4d94-b31e-f017f92e3f90) and click on Share -> Publish.
+- Export lessons/modules as PDF or JSON
+- Drag-and-drop module/lesson reordering
+- Theme switcher (Dark/Light)
+- Local draft save using `localStorage`
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
