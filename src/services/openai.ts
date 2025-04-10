@@ -3,6 +3,9 @@
 
 import { Lesson, LessonGenerateRequest } from '@/types/course';
 
+// Export the LessonResponse type that's needed by LessonDisplay.tsx
+export type LessonResponse = Lesson;
+
 export const generateLesson = async (request: LessonGenerateRequest): Promise<Lesson> => {
   try {
     console.log('Generating lesson for:', request);
