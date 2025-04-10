@@ -1,33 +1,69 @@
 
 import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/landing/Footer';
 import LessonForm from '@/components/generator/LessonForm';
-import LessonDisplay from '@/components/generator/LessonDisplay';
+import LessonPreview from '@/components/generator/LessonPreview';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LessonRequest, LessonResponse } from '@/services/openai';
+import { useToast } from '@/hooks/use-toast';
+import { Lesson, LessonGenerateRequest } from '@/types/course';
+import { generateLesson } from '@/services/openai';
 
 const Generator = () => {
-  const [generatedLesson, setGeneratedLesson] = useState<LessonResponse | null>(null);
-  const [lastRequest, setLastRequest] = useState<LessonRequest | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("form");
-  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("prompt");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentRequest, setCurrentRequest] = useState<LessonGenerateRequest | null>(null);
+  const [generatedLesson, setGeneratedLesson] = useState<Lesson | null>(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  
+  // Get courseId from URL if it exists
+  const courseId = searchParams.get('courseId');
 
-  const handleGenerateLesson = (lessonData: LessonResponse, request: LessonRequest) => {
-    setGeneratedLesson(lessonData);
-    setLastRequest(request);
-    setActiveTab("preview");
+  const handleGenerateLesson = async (request: LessonGenerateRequest) => {
+    setCurrentRequest(request);
+    setIsGenerating(true);
+    
+    try {
+      const lessonData = await generateLesson(request);
+      setGeneratedLesson(lessonData);
+      setActiveTab("review");
+      
+      toast({
+        title: "Lesson Generated",
+        description: "Your lesson has been generated successfully!",
+      });
+    } catch (error) {
+      console.error('Error generating lesson:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "There was an error generating your lesson. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleRegenerateRequest = () => {
-    if (lastRequest) {
-      setIsRegenerating(true);
-      // This will trigger regeneration with the same parameters
-      setTimeout(() => {
-        setActiveTab("form");
-        setIsRegenerating(false);
-      }, 100);
+  const handleSaveLesson = () => {
+    toast({
+      title: "Lesson Saved",
+      description: "Your lesson has been saved successfully!",
+    });
+    
+    // Navigate back to course view if we came from there
+    if (courseId) {
+      navigate(`/course/${courseId}`);
+    } else {
+      navigate('/dashboard');
     }
+  };
+
+  const handleUpdateLesson = (updatedLesson: Lesson) => {
+    setGeneratedLesson(updatedLesson);
   };
 
   return (
@@ -35,33 +71,40 @@ const Generator = () => {
       <Navbar />
       <main className="flex-grow">
         <div className="max-w-5xl mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-coursegpt-blue mb-4">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-center mb-2">
               AI Lesson Generator
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Transform your ideas into comprehensive lesson plans in seconds. Enter your topic, select the course level, and let our AI create a structured lesson for you.
+            <p className="text-gray-600 text-center">
+              Generate a new lesson with AI assistance
             </p>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="form">Create Lesson</TabsTrigger>
-              <TabsTrigger value="preview" disabled={!generatedLesson}>Preview Lesson</TabsTrigger>
+              <TabsTrigger value="prompt" disabled={isGenerating}>1. Prompt</TabsTrigger>
+              <TabsTrigger value="review" disabled={!generatedLesson}>2. Review & Edit</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="form" className="mt-0">
-              <LessonForm 
-                onGenerateLesson={handleGenerateLesson} 
-                initialValues={isRegenerating ? lastRequest : undefined}
-              />
+            <TabsContent value="prompt" className="mt-0">
+              <Card className="p-6">
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-2">Define Your Lesson</h2>
+                  <p className="text-gray-600">
+                    Provide details about the lesson you want to create
+                  </p>
+                </div>
+                <LessonForm onGenerateLesson={handleGenerateLesson} isGenerating={isGenerating} />
+              </Card>
             </TabsContent>
             
-            <TabsContent value="preview" className="mt-0">
-              {generatedLesson && (
-                <LessonDisplay 
-                  lessonData={generatedLesson} 
-                  onRegenerateRequest={handleRegenerateRequest}
+            <TabsContent value="review" className="mt-0">
+              {generatedLesson && currentRequest && (
+                <LessonPreview 
+                  lesson={generatedLesson}
+                  generateRequest={currentRequest}
+                  onSave={handleSaveLesson}
+                  onUpdateLesson={handleUpdateLesson}
                 />
               )}
             </TabsContent>
